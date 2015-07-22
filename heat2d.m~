@@ -9,10 +9,10 @@ dx = 2*pi/NX; dy = 2*pi/NY;
 [i,j] = meshgrid(1:NX,1:NY);
 x = i*dx; y = j*dy;
 
-t0 = 0.0; tSteps = 500;
-dt = 0.005*dx;
+t0 = 0.0; tSteps = 150000;
+dt = 0.001*dx;
 
-shfactor = 100;
+shfactor = 300;
 nshow = tSteps / shfactor;
 
 ikx = 1i*ones(1,NY)'*[0:NX/2 -NX/2+1:-1];
@@ -22,32 +22,35 @@ ikx2 = ikx.*ikx;
 iky2 = iky.*iky;
 
 u = zeros(nshow,NX,NY);
-
-uu = (zeros(tSteps,NX,NY));
+uu = zeros(nshow,NX,NY);
 
 uold = exp(-((x-pi).^2 + (y-pi).^2));
 unew = uold;
-u(1,:,:) = reshape(uold,1,NX,NY);
+uuold = -exp(-((x-pi).^2 + (y-pi).^2)); % uold;
+uunew = uuold;
 
+u(1,:,:) = reshape(uold,1,NX,NY);
+uu(1,:,:) = reshape(uuold,1,NX,NY);
 
 for tstep = 1:tSteps-1
-    uold = unew;
-    uf = fft2(uold); % fftn(squeeze(u(tstep,:,:)));
+    uold = unew; uuold = uunew;
+    uf = fftn(uuold); % fftn(squeeze(u(tstep,:,:)));
 %     uxx = real(ifft2(ikx2.*uf));
 %     uyy = real(ifft2(iky2.*uf));
 %     [uxx,uyy] = sd2_2d(uf,ikx2,iky2);
  
-    unew = RK4(uold, dt,alpha,ikx2,iky2); %uold + dt*rhs(uf,alpha,ikx2,iky2);
-    uu(tstep,:,:) = reshape((unew-uold)/dt,1,NX,NY);
+    uunew = uuold + dt*rhs(uf,alpha,ikx2,iky2); % RK4(uuold, dt,alpha,ikx2,iky2); 
+    unew = uold + dt*uunew;    
     
     if (mod(tstep,shfactor) == 0 ) 
-        u(tstep/shfactor,:,:) = unew;        
-        fprintf('%d\n',tstep)
+        u(tstep/shfactor,:,:) = reshape(unew,1,NX,NY); 
+        uu(tstep/shfactor,:,:) = reshape(uunew,1,NX,NY);
+        fprintf('%d, %f\n',tstep,unew(1,1))
     end 
     
     % BC
-%     unew(:,1) = 0.1; % unew(1,:) = 1.0;
-%     unew(:,end) = -0.1; % unew(end,:) = -1.0;
+     unew(:,1) = 0.0; unew(1,:) = 0.0;
+     unew(:,end) = 0.0; unew(end,:) = 0.0;
 end
 
 
@@ -55,7 +58,7 @@ end
 
 for tstep=1:nshow-1
 %     , axis([0 NX 0 NY 0 1]),
-    surf(squeeze(uu(tstep,:,:))),title(sprintf('t=%d',tstep)), axis([0 NX 0 NY -1 1]), drawnow;    
+    surf(squeeze(u(tstep,:,:))),title(sprintf('t=%d',tstep)),axis([0 NX 0 NY 0 1]),  drawnow;    
     M(tstep) = getframe;    
 end
 
