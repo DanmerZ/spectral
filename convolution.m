@@ -18,9 +18,7 @@ ffhat = fft(ff);
 
 ffhat2 = ifft( fft(fft(f)).^2 );
 
-fhat = fft(f);
-cnv = conv(fhat,fhat,'same');
 
 
-% plot(x,-dffx+real(ifft(1i*kx.*ffhat2))/NX)
-plot(x,-dffx+real(ifft(1i*kx.*cnv))/NX)
+plot(x,-dffx+real(ifft(1i*kx.*ffhat2))/NX)
+
