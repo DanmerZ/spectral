@@ -51,7 +51,7 @@ dissz = nu*(wxx + wyy + wzz);
 
 p = x; %zeros(NX,NY,NZ);
 p1 = zeros(NX,NY,NZ);
-px = p1; py = p1; pz = p1;
+px = p; py = p; pz = p;
 
 px(2:end-1,2:end-1,2:end-1) = (p(3:end,2:end-1,2:end-1) + 2*p(2:end-1,2:end-1,2:end-1) - p(1:end-2,2:end-1,2:end-1))/dx/dx; 
 px(1,2:end-1,2:end-1) = px(2,2:end-1,2:end-1); px(end,2:end-1,2:end-1) = px(end-1,2:end-1,2:end-1);
@@ -144,7 +144,7 @@ p_s = real(ifftn(p_hat));
 % scatter3(x(:),y(:),z(:),15,advx(:)),colorbar
 % slice(x,y,z,advx,pi,pi,pi),colorbar
 % surf(p_s(:,:,NZ/2))
-subplot(2,2,1); slice(x,y,z,px,pi,pi,pi),colorbar
-subplot(2,2,2); slice(x,y,z,py,pi,pi,pi),colorbar
-subplot(2,2,3); slice(x,y,z,pz,pi,pi,pi),colorbar
-subplot(2,2,4); slice(x,y,z,p,pi,pi,pi),colorbar
+subplot(2,2,1); slice(x,y,z,px,pi,pi,pi)
+subplot(2,2,2); slice(x,y,z,py,pi,pi,pi)
+subplot(2,2,3); slice(x,y,z,pz,pi,pi,pi)
+subplot(2,2,4); slice(x,y,z,p,pi,pi,pi)
