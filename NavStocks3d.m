@@ -23,8 +23,8 @@ vx = 0.0; vy = 0.0; vz = 0.0;
 wx = 0.0; wy = 0.0; wz = 0.0;
 
 uxx = -2.0*u.*(1-2.0*(x-pi).^2);
-uyy = 4.0*(x-pi).*(y-pi).*u;
-uzz = 4.0*(x-pi).*(z-pi).*u;
+uyy = -2.0*u.*(1-2.0*(y-pi).^2);
+uzz = -2.0*u.*(1-2.0*(z-pi).^2);
 
 vxx = 0.0;
 vyy = 0.0;
@@ -45,6 +45,13 @@ advz = u.*wx + v.*wy + w.*wz;
 dissx = nu*(uxx + uyy + uzz);
 dissy = nu*(vxx + vyy + vzz);
 dissz = nu*(wxx + wyy + wzz);
+
+% analytical Poisson pressure resolving
+% p(1,1,1) = 0
+
+p = zeros(NX,NY,NZ);
+
+
 
 % SPECTRAL
 % wave numbers
@@ -67,6 +74,8 @@ end
 ikx2 = ikx.*ikx;
 iky2 = iky.*iky;
 ikz2 = ikz.*ikz;
+
+k2 = abs(ikx.^2 + iky.^2 + ikz.^2);
 
 % Fourier transform of velocity components
 
@@ -112,6 +121,15 @@ diss_x = nu*(us_xx + us_yy + us_zz);
 diss_y = nu*(vs_xx + vs_yy + vs_zz);
 diss_z = nu*(ws_xx + ws_yy + ws_zz);
 
+% Spectral pressure Poisson resolving
+
+p_hat = (-ikx.*fftn(advx)-iky.*fftn(advy)-ikz.*fftn(advz))./k2;
+p_hat(1,1,1) = 0.0;
+p_s = real(ifftn(p_hat));
+% prhs = real(ifftn(-ikx.*fftn(advx)))+real(ifftn(-iky.*fftn(advy)))+real(ifftn(-ikz.*fftn(advz)));
+
+
 
 % scatter3(x(:),y(:),z(:),15,advx(:)),colorbar
-slice(x,y,z,uyy-us_yy,pi,pi,pi),colorbar
+% slice(x,y,z,advx,pi,pi,pi),colorbar
+surf(p_s(:,:,NZ/2))
