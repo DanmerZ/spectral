@@ -114,4 +114,4 @@ diss_z = nu*(ws_xx + ws_yy + ws_zz);
 
 
 % scatter3(x(:),y(:),z(:),15,advx(:)),colorbar
-slice(x,y,z,diss_x,pi,pi,pi),colorbar
+slice(x,y,z,uyy-us_yy,pi,pi,pi),colorbar
