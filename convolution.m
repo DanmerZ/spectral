@@ -20,5 +20,5 @@ ffhat2 = ifft( fft(fft(f)).^2 );
 
 
 
-plot(x,-dffx+real(ifft(1i*kx.*ffhat2))/NX)
+plot(x,real(ifft(1i*kx.*ffhat2))/NX)
 

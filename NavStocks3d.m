@@ -49,18 +49,66 @@ dissz = nu*(wxx + wyy + wzz);
 % finite difference Poisson pressure resolving
 % p(1,1,1) = 0
 
-p = x; %zeros(NX,NY,NZ);
+p = zeros(NX,NY,NZ);
 p1 = zeros(NX,NY,NZ);
-px = p1; py = p1; pz = p1;
+pxx = p1; pyy = p1; pzz = p1;
+advx_x = p1; advy_y = p1; advz_z = p1;
 
-px(2:end-1,2:end-1,2:end-1) = (p(3:end,2:end-1,2:end-1) + 2*p(2:end-1,2:end-1,2:end-1) - p(1:end-2,2:end-1,2:end-1))/dx/dx; 
-px(1,2:end-1,2:end-1) = px(2,2:end-1,2:end-1); px(end,2:end-1,2:end-1) = px(end-1,2:end-1,2:end-1);
+for ii=2:NX-1
+    for jj=2:NX-1
+        for kk=2:NY-1
+            pxx(ii,jj,kk)=(p(ii+1,jj,kk)-2*p(ii,jj,kk)+p(ii-1,jj,kk))/(dx.^2);
+            pyy(ii,jj,kk)=(p(ii,jj+1,kk)-2*p(ii,jj,kk)+p(ii,jj-1,kk))/(dy.^2);
+            pzz(ii,jj,kk)=(p(ii,jj,kk+1)-2*p(ii,jj,kk)+p(ii,jj,kk-1))/(dz.^2);
+            
+            advx_x(ii,jj,kk) = (advx(ii+1,jj,kk)-advx(ii-1,jj,kk))/2.0/dx;
+            advy_y(ii,jj,kk) = (advy(ii,jj+1,kk)-advy(ii,jj-1,kk))/2.0/dy;
+            advz_z(ii,jj,kk) = (advz(ii,jj,kk+1)-advz(ii,jj,kk-1))/2.0/dz;
+        end
+    end
+end
 
-py(2:end-1,2:end-1,2:end-1) = (p(2:end-1,3:end,2:end-1) + 2*p(2:end-1,2:end-1,2:end-1) - p(2:end-1,1:end-2,2:end-1))/dy/dy; 
-py(2:end-1,1,2:end-1) = py(2:end-1,2,2:end-1); py(2:end-1,end,2:end-1) = py(2:end-1,end-1,2:end-1);
+advx_x(1,:,:) = (advx(2,:,:)-advx(1,:,:)) / dx;
+advx_x(end,:,:) = (advx(end,:,:)-advx(end-1,:,:)) / dx;
+advx_x(:,1,:) = (advx(:,2,:)-advx(:,1,:)) / dx;
+advx_x(:,end,:) = (advx(:,end,:)-advx(:,end-1,:)) / dx;
+advx_x(:,:,1) = (advx(:,:,2)-advx(:,:,1)) / dx;
+advx_x(:,:,end) = (advx(:,:,end)-advx(:,:,end-1)) / dx;
 
-pz(2:end-1,2:end-1,2:end-1) = (p(2:end-1,2:end-1,3:end) + 2*p(2:end-1,2:end-1,2:end-1) - p(2:end-1,2:end-1,1:end-2))/dz/dz; 
-pz(2:end-1,2:end-1,1) = pz(2:end-1,2:end-1,2); pz(2:end-1,2:end-1,end) = pz(2:end-1,2:end-1,end-1);
+advy_y(1,:,:) = (advy(2,:,:)-advy(1,:,:)) / dy;
+advy_y(end,:,:) = (advy(end,:,:)-advy(end-1,:,:)) / dy;
+advy_y(:,1,:) = (advy(:,2,:)-advy(:,1,:)) / dy;
+advy_y(:,end,:) = (advy(:,end,:)-advy(:,end-1,:)) / dy;
+advy_y(:,:,1) = (advy(:,:,2)-advy(:,:,1)) / dy;
+advy_y(:,:,end) = (advy(:,:,end)-advy(:,:,end-1)) / dy;
+
+advz_z(1,:,:) = (advz(2,:,:)-advz(1,:,:)) / dz;
+advz_z(end,:,:) = (advz(end,:,:)-advz(end-1,:,:)) / dz;
+advy_y(:,:,1) = (advy(:,:,2)-advy(:,:,1)) / dz;
+advz_z(:,end,:) = (advz(:,end,:)-advz(:,end-1,:)) / dz;
+advz_z(:,:,1) = (advz(:,:,2)-advz(:,:,1)) / dz;
+advz_z(:,:,end) = (advz(:,:,end)-advz(:,:,end-1)) / dz;
+
+b = -advx_x-advy_y-advz_z;
+dxyz = dy*dy*dz*dz+dx*dx*dz*dz+dx*dx*dy*dy;
+dxyz1 = dx*dx*dy*dy*dz*dz;
+
+for ii=2:NX-1
+    for jj=2:NY-1
+        for kk=2:NZ-1            
+            p1(ii,jj,kk) = -b(ii,jj,kk)*dxyz1/(2*dxyz);
+        end
+    end
+end
+
+% px(2:end-1,2:end-1,2:end-1) = (p(3:end,2:end-1,2:end-1) + 2*p(2:end-1,2:end-1,2:end-1) - p(1:end-2,2:end-1,2:end-1))/dx/dx; 
+% px(1,2:end-1,2:end-1) = px(2,2:end-1,2:end-1); px(end,2:end-1,2:end-1) = px(end-1,2:end-1,2:end-1);
+% 
+% py(2:end-1,2:end-1,2:end-1) = (p(2:end-1,3:end,2:end-1) + 2*p(2:end-1,2:end-1,2:end-1) - p(2:end-1,1:end-2,2:end-1))/dy/dy; 
+% py(2:end-1,1,2:end-1) = py(2:end-1,2,2:end-1); py(2:end-1,end,2:end-1) = py(2:end-1,end-1,2:end-1);
+% 
+% pz(2:end-1,2:end-1,2:end-1) = (p(2:end-1,2:end-1,3:end) + 2*p(2:end-1,2:end-1,2:end-1) - p(2:end-1,2:end-1,1:end-2))/dz/dz; 
+% pz(2:end-1,2:end-1,1) = pz(2:end-1,2:end-1,2); pz(2:end-1,2:end-1,end) = pz(2:end-1,2:end-1,end-1);
 % p1(2:end-1,2:end-1,2:end-1) = 
 
 
@@ -143,8 +191,8 @@ p_s = real(ifftn(p_hat));
 
 % scatter3(x(:),y(:),z(:),15,advx(:)),colorbar
 % slice(x,y,z,advx,pi,pi,pi),colorbar
-% surf(p_s(:,:,NZ/2))
-subplot(2,2,1); slice(x,y,z,px,pi,pi,pi),colorbar
-subplot(2,2,2); slice(x,y,z,py,pi,pi,pi),colorbar
-subplot(2,2,3); slice(x,y,z,pz,pi,pi,pi),colorbar
-subplot(2,2,4); slice(x,y,z,p,pi,pi,pi),colorbar
+surf(advx(:,:,NZ/2))
+% subplot(2,2,1); slice(x,y,z,advs_x,pi,pi,pi),colorbar
+% subplot(2,2,2); slice(x,y,z,advs_y,pi,pi,pi),colorbar
+% subplot(2,2,3); slice(x,y,z,advs_z,pi,pi,pi),colorbar
+% subplot(2,2,4); slice(x,y,z,u,pi,pi,pi),colorbar
