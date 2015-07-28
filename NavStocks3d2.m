@@ -2,15 +2,25 @@ clear all;
 clc;
 close all;
 
-nu = 1.0; % viscosity
+nu = 0.001; % viscosity
 
-NX = 32; NY = 32; NZ = 32;
+NX = 64; NY = 64; NZ = 64;
 dx = 2*pi/NX; dy = 2*pi/NY; dz = 2*pi/NZ;
+
+dt = 0.0001*dx; tTimes = 3000;
 
 [x,y,z] = meshgrid(dx*[1:NX],dy*[1:NY],dz*[1:NZ]);
 
 % components of velocity
 % u = U_x, v = U_y, w = U_z
+
+% u = -10*exp(-((x-pi).^2+(y-pi).^2+(z-pi).^2));
+% v = zeros(NX,NY,NZ);
+% w = zeros(NX,NY,NZ);
+
+% u = random('unif',-1,1,NX,NY,NZ);
+% v = random('unif',-1,1,NX,NY,NZ);
+% w = random('unif',-1,1,NX,NY,NZ);
 
 u = exp(-((x-pi).^2+(y-pi).^2+(z-pi).^2));
 v = zeros(NX,NY,NZ);
@@ -42,24 +52,94 @@ k2 = abs(ikx.^2 + iky.^2 + ikz.^2);
 
 % Fourier transform of velocity components
 
-uf = fftn(u); uff = fftn(uf);
-vf = fftn(v); vff = fftn(vf);
-wf = fftn(w); wff = fftn(wf);
+uf_old = fftn(u); % uff = fftn(uf);
+vf_old = fftn(v); % vff = fftn(vf);
+wf_old = fftn(w); % wff = fftn(wf);
 
-% Fourier transform of advection term
-% as convolution
+for nt=1:tTimes
+    
+    uf = uf_old; vf = vf_old; wf = wf_old;
+    
+    % velocity derivatives
+    uxf = ikx.*uf; uyf = iky.*uf; uzf = ikz.*uf;
+    uxxf = ikx2.*uf; uyyf = iky2.*uf; uzzf = ikz2.*uf;
+    
+    vxf = ikx.*vf; vyf = iky.*vf; vzf = ikz.*vf;
+    vxxf = ikx2.*vf; vyyf = iky2.*vf; vzzf = ikz2.*vf;
+    
+    wxf = ikx.*wf; wyf = iky.*wf; wzf = ikz.*wf;
+    wxxf = ikx2.*wf; wyyf = iky2.*wf; wzzf = ikz2.*wf;
 
-advxf = ikx.*uff.*uff + iky.*vff.*uff + ikz.*wff.*uff;
-advyf = ikx.*uff.*vff + iky.*vff.*vff + ikz.*wff.*vff;
-advzf = ikx.*uff.*wff + iky.*vff.*wff + ikz.*wff.*wff;
+    % Fourier transform of advection term
+    
+    % as convolution
+    % something wrong here ???
+    % advxf = ikx.*uff.*uff + iky.*vff.*uff + ikz.*wff.*uff;
+    % advyf = ikx.*uff.*vff + iky.*vff.*vff + ikz.*wff.*vff;
+    % advzf = ikx.*uff.*wff + iky.*vff.*wff + ikz.*wff.*wff;
+    
+    % return to physical space and back to Fourier
+    
+    u_old = real(ifftn(uf));
+    v_old = real(ifftn(vf));
+    w_old = real(ifftn(wf));
+    
+    ux_old = real(ifftn(uxf)); uy_old = real(ifftn(uyf)); uz_old = real(ifftn(uzf));
+    vx_old = real(ifftn(vxf)); vy_old = real(ifftn(vyf)); vz_old = real(ifftn(vzf));
+    wx_old = real(ifftn(wxf)); wy_old = real(ifftn(wyf)); wz_old = real(ifftn(wzf));
+    
+    advxf = fftn(u_old.*ux_old + v_old.*uy_old + w_old.*uz_old);
+    advyf = fftn(u_old.*vx_old + v_old.*vy_old + w_old.*vz_old);
+    advzf = fftn(u_old.*wx_old + v_old.*wy_old + w_old.*wz_old);
+    
+    % dissipation term
+    
+    dissxf = -nu*k2.*uf; dissyf = -nu*k2.*vf; disszf = -nu*k2.*wf;  
+    % dissx = real(ifftn(dissxf)); dissy = real(ifftn(dissyf)); dissz = real(ifftn(disszf));
+    
+    % pressure resolving
+    
+    pf = -(ikx.*advxf+iky.*advyf+ikz.*advzf)./k2;
+    pf(1,1,1) = 0.0;
+    p = real(ifftn(pf));
+    
+    uf_new = uf + dt*(-advxf-ikx.*pf+dissxf);
+    vf_new = vf + dt*(-advyf-iky.*pf+dissyf);
+    wf_new = wf + dt*(-advzf-ikz.*pf+disszf);
+    
+    if mod(nt,10) == 0
+        u = real(ifftn(uf_new)); v = real(ifftn(vf_new)); w = real(ifftn(wf_new)); 
+        subplot(2,2,1);contourf(u(:,:,NZ/2));colorbar, title(max(abs(u(:))));
+        subplot(2,2,2);contourf(v(:,:,NZ/2));colorbar, title(max(abs(v(:))));
+        subplot(2,2,3);contourf(w(:,:,NZ/2-1));colorbar, title(max(abs(w(:))));
+        subplot(2,2,4);contourf(p(:,:,NZ/2));colorbar, title(max(p(:)));
 
-advx = real(ifftn(advxf))/NX;
+%         subplot(2,2,1);h=slice(x,y,z,u,pi,pi,pi);colorbar, title(max(abs(u(:))));set(h,'EdgeColor','none')
+%         subplot(2,2,2);h=slice(x,y,z,v,pi,pi,pi);colorbar, title(max(abs(v(:))));set(h,'EdgeColor','none')
+%         subplot(2,2,3);h=slice(x,y,z,w,pi,pi,pi);colorbar, title(max(abs(w(:))));set(h,'EdgeColor','none')
+%         subplot(2,2,4);h=slice(x,y,z,p,pi,pi,pi);colorbar, title(max(p(:)));set(h,'EdgeColor','none')
+    %      slice(x,y,z,u,pi,pi,pi),colorbar,title(nt)
+    %     isosurface(x,y,z,p,1e-4),title(nt)
+%         caxis([-10 10])
+        drawnow
+    end
+    
+    disp(nt)
+    
+    uf_old = uf_new; vf_old = vf_new; wf_old = wf_new;    
+    
+end
+
+
+
+
 
 % subplot(2,2,1); slice(x,y,z,real(ifftn(advxf)),pi,pi,pi),colorbar
 % subplot(2,2,2); slice(x,y,z,real(ifftn(advyf)),pi,pi,pi),colorbar
 % subplot(2,2,3); slice(x,y,z,real(ifftn(advzf)),pi,pi,pi),colorbar
 % subplot(2,2,4); slice(x,y,z,u,pi,pi,pi),colorbar
 
-surf(advx(:,:,NZ))
+
+% surf(u(:,:,NZ/2))
 
 

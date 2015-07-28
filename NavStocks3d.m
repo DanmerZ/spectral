@@ -191,7 +191,7 @@ p_s = real(ifftn(p_hat));
 
 % scatter3(x(:),y(:),z(:),15,advx(:)),colorbar
 % slice(x,y,z,advx,pi,pi,pi),colorbar
-surf(advx(:,:,NZ/2))
+surf(p_s(:,:,NZ/2))
 % subplot(2,2,1); slice(x,y,z,advs_x,pi,pi,pi),colorbar
 % subplot(2,2,2); slice(x,y,z,advs_y,pi,pi,pi),colorbar
 % subplot(2,2,3); slice(x,y,z,advs_z,pi,pi,pi),colorbar

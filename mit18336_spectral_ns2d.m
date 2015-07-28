@@ -19,7 +19,7 @@ dt=1e-1;    % time step
 TF=1000.0;  % final time
 TSCREEN=25; % sreen update interval time (NOTE: plotting is usually slow)
 method='crank_nicholson';       % 'Forward_Euler' or 'crank_nicholson'
-initial_condition='vortices';   % 'vortices' or 'random'
+initial_condition='random';   % 'vortices' or 'random'
 
 I=sqrt(-1);
 dx=2*pi/NX;
