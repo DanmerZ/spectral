@@ -1,0 +1,12 @@
+clear all;
+clc;
+close all;
+
+nu = 0.001;
+
+NX = 128; NY = 128;
+dx = 2*pi/NX; dy = 2*pi/NY;
+
+dt = 0.01*dx; tTimes = 1;
+
+[x,y] = meshgrid(dx*(1:NX),dy*(1:dy));

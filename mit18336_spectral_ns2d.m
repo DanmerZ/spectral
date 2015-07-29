@@ -15,11 +15,11 @@ clear all;
 nu=1.0e-3;  % viscosity
 NX=128;     % resolution in x
 NY=128;     % resolution in y
-dt=1e-1;    % time step
+dt=1e-3;    % time step
 TF=1000.0;  % final time
 TSCREEN=25; % sreen update interval time (NOTE: plotting is usually slow)
-method='crank_nicholson';       % 'Forward_Euler' or 'crank_nicholson'
-initial_condition='random';   % 'vortices' or 'random'
+method='forward_euler';       % 'Forward_Euler' or 'crank_nicholson'
+initial_condition='vortices';   % 'vortices' or 'random'
 
 I=sqrt(-1);
 dx=2*pi/NX;
