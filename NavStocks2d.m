@@ -11,8 +11,12 @@ dt = 1e-4; tTimes = 100000;
 
 [x,y] = meshgrid(dx*[1:NX],dy*[1:NY]);
 % 
-u = exp(-(x-pi).^2-(y-pi).^2);
-v = zeros(NX,NY);
+% u = exp(-(x-pi).^2-(y-pi).^2);
+% v = zeros(NX,NY);
+
+a = 1; b = 1;
+u = cos(a*x).*sin(b*y);
+v = sin(a*x).*cos(b*y);
 
 % u = random('unif',-1,1,NX,NY);
 % v = random('unif',-1,1,NX,NY);
@@ -61,9 +65,9 @@ for nt=1:tTimes
     v = real(ifft2(vf_new));    
     
     if mod(nt,100) == 0        
-        subplot(2,2,1); contour(u,50),title(nt),colorbar,colormap('jet'),shading flat; drawnow
-        subplot(2,2,2); contour(v,50),title(nt*dt),colorbar,colormap('jet'),shading flat; drawnow
-        subplot(2,2,3); contour(p,50),title(nt*dt),colorbar,colormap('jet'),shading flat; drawnow
+        subplot(2,2,1); contourf(u,20),title(nt),colorbar,colormap('jet'),shading flat; drawnow
+        subplot(2,2,2); contourf(v,20),title(nt*dt),colorbar,colormap('jet'),shading flat; drawnow
+        subplot(2,2,3); contourf(p,20),title(nt*dt),colorbar,colormap('jet'),shading flat; drawnow
     end
     
     uf = uf_new; vf = vf_new;

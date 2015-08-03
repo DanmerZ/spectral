@@ -7,24 +7,24 @@ nu = 0.001; % viscosity
 NX = 64; NY = 64; NZ = 64;
 dx = 2*pi/NX; dy = 2*pi/NY; dz = 2*pi/NZ;
 
-dt = 0.0005*dx; tTimes = 30000;
+dt = 0.009*dx; tTimes = 30000;
 
 [x,y,z] = meshgrid(dx*[1:NX],dy*[1:NY],dz*[1:NZ]);
 
 % components of velocity
 % u = U_x, v = U_y, w = U_z
 
-u = exp(-((x-pi).^2+(y-pi).^2+(z-pi).^2));
-v = zeros(NX,NY,NZ);
-w = zeros(NX,NY,NZ);
+% u = exp(-((x-pi).^2+(y-pi).^2+(z-pi).^2));
+% v = zeros(NX,NY,NZ);
+% w = zeros(NX,NY,NZ);
 
 % u = random('unif',-1,1,NX,NY,NZ);
 % v = random('unif',-1,1,NX,NY,NZ);
 % w = random('unif',-1,1,NX,NY,NZ);
 
-% u = sin(x-pi).*cos(y-pi).*cos(z-pi);
-% v = -cos(x-pi).*sin(y-pi).*cos(z-pi);
-% w = zeros(NX,NY,NZ);
+u = cos(x).*sin(y).*sin(z);
+v = sin(x).*cos(y).*sin(z);
+w = sin(x).*sin(y).*cos(z);
 
 % SPECTRAL
 % wave numbers
@@ -114,7 +114,7 @@ for nt=1:tTimes
     
     u = real(ifftn(uf_new)); v = real(ifftn(vf_new)); w = real(ifftn(wf_new)); 
     if mod(nt,10) == 0
-            quiver(u(:,:,NZ/2),v(:,:,NZ/2));
+%             quiver(u(:,:,NZ/2),v(:,:,NZ/2));
 %         subplot(2,2,1);imagesc(u(:,:,NZ/2));colorbar, title(max(abs(u(:))));
 %         subplot(2,2,2);imagesc(v(:,:,NZ/2));colorbar, title(max(abs(v(:))));
 %         subplot(2,2,3);imagesc(w(:,:,NZ/2-1));colorbar, title(max(abs(w(:))));
@@ -125,7 +125,7 @@ for nt=1:tTimes
 %         subplot(2,2,3);h=slice(x,y,z,w,pi,pi,pi);colorbar, title(max(abs(w(:))));set(h,'EdgeColor','none')
 %         subplot(2,2,4);h=slice(x,y,z,p,pi,pi,pi);colorbar, title(max(p(:)));set(h,'EdgeColor','none')
     %      slice(x,y,z,u,pi,pi,pi),colorbar,title(nt)
-    %     isosurface(x,y,z,p,1e-4),title(nt)
+        isosurface(x,y,z,u,0.3),title(nt),drawnow
 %         caxis([-10 10])
         drawnow
     end

@@ -1,0 +1,88 @@
+clear all;
+
+% Pr = 1, nu = eta/mu0
+mu0 = pi*4e-7;
+eta = 0.08*mu0;
+nu = eta / mu0;
+
+
+NX = 128; NY = 128;
+dx = 2*pi/NX; dy = 2*pi/NY;
+
+[x,y] = meshgrid(dx*[1:NX],dy*[1:NY]);
+
+dt = 1e-14; tTimes = 200;
+
+u = -sin(y); v = sin(x);
+w = cos(x) + cos(y);
+% w = exp(-(x-pi).^2 - (y-pi).^2);
+A = cos(y) + 0.5*cos(2*x);
+% A = exp(-(x-pi).^2 - (y-pi).^2);
+
+kx = ones(1,NY)'*[0:NX/2 -NX/2+1:-1];
+ky = [0:NY/2 -NY/2+1:-1]'*ones(1,NX);
+
+ikx = 1i*kx;
+iky = 1i*ky;
+
+k2 = ikx.^2 + iky.^2;
+k2p = k2;
+k2p(1,1) = 1;
+
+wf = fft2(w);
+Af = fft2(A);
+
+for nt=1:tTimes
+   psif = -wf./k2p;
+   u = real(ifft2(iky.*psif));
+   v = -real(ifft2(ikx.*psif));
+   
+   wx = real(ifft2(ikx.*wf));
+   wy = real(ifft2(iky.*wf));
+   
+   conv = u.*wx + v.*wy;
+   convf = fft2(conv);
+   
+   dissf = nu*k2.*wf;
+   
+   Bx = real(ifft2(iky.*Af));
+   By = -real(ifft2(ikx.*Af));
+   
+   laplAf = k2.*Af;  % ^Laplasian(A)
+   Jf = -(1/mu0)*laplAf;
+   Jx = real(ifft2(ikx.*Jf));
+   Jy = real(ifft2(iky.*Jf));
+   
+   magn = (1/mu0)*(Bx.*Jx + By.*Jy);
+   magnf = fft2(magn);
+   
+   Ax = real(ifft2(ikx.*Af));
+   Ay = real(ifft2(iky.*Af));
+   
+   conv_A = u.*Ax + v.*Ay;
+   convf_A = fft2(conv_A);
+   
+   dissf_A = (eta/mu0)*laplAf;
+   
+   wf_new = wf + dt*(-convf+magnf+dissf);
+   Af_new = Af + dt*(-convf_A+dissf_A);
+   
+   
+   if mod(nt,1) == 0
+       w = real(ifft2(wf_new));
+       A = real(ifft2(Af_new));
+       
+       disp(max(Af(:)))
+       disp(max(convf_A(:)))
+       disp(max(dissf_A(:)))
+       
+       subplot(2,1,1); contourf(w,50),title(nt*dt),colorbar,colormap('jet'),shading flat; drawnow 
+       subplot(2,1,2); contourf(A,50),title(max(A(:))),colorbar,colormap('jet'),shading flat; drawnow 
+%        subplot(2,1,2); contour(u), drawnow
+   end
+   
+   wf = wf_new;
+   Af = Af_new;
+   
+end
+
